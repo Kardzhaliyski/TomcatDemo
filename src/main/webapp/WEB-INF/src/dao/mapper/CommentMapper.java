@@ -1,5 +1,6 @@
-package model;
+package dao.mapper;
 
+import model.Comment;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Select;
 

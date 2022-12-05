@@ -8,8 +8,10 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import model.Comment;
 import model.Post;
+import utils.Security;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -27,6 +29,11 @@ public class PostServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        if (!Security.isLoggedIn(req)) {
+            resp.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+            return;
+        }
+
         String pathInfo = req.getPathInfo();
         if (pathInfo == null || pathInfo.equals("/")) {
             Post[] posts = dao.getAllPosts();
@@ -51,13 +58,18 @@ public class PostServlet extends HttpServlet {
                 writeAsJson(resp, null);
             }
 
-            Comment[] comments = dao.getAllCommentsForPost(id);
-            writeAsJson(resp, comments);
+            RequestDispatcher dispatcher = req.getRequestDispatcher("/comments?postId=" + id);
+            dispatcher.forward(req, resp);
         }
     }
 
     @Override
     protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        if (Security.isLoggedIn(req)) {
+            resp.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+            return;
+        }
+
         String pathInfo = req.getPathInfo();
         if (pathInfo == null || pathInfo.equals("/")) {
             writeAsJson(resp, null);
@@ -95,6 +107,8 @@ public class PostServlet extends HttpServlet {
     }
 
     private String[] getPathParts(String pathInfo) {
-        return Arrays.stream(pathInfo.split("/")).filter(p -> !p.isEmpty()).toArray(String[]::new);
+        return Arrays.stream(pathInfo.split("/"))
+                .filter(p -> !p.isEmpty())
+                .toArray(String[]::new); // "" posts 1 ""
     }
 }

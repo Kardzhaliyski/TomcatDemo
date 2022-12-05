@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import model.Comment;
+import utils.Security;
 
 import java.io.IOException;
 
@@ -24,6 +25,11 @@ public class CommentServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        if (Security.isLoggedIn(req)) {
+            resp.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+            return;
+        }
+
         String postId = req.getParameter("postId");
         if(postId != null) {
             if (!isPositiveNumber(postId)) {
