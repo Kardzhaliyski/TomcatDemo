@@ -7,12 +7,22 @@
 
     <servlet>
         <servlet-name>PostServlet</servlet-name>
-        <servlet-class>PostServlet</servlet-class>
+        <servlet-class>servlet.PostServlet</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>CommentServlet</servlet-name>
+        <servlet-class>servlet.CommentServlet</servlet-class>
     </servlet>
 
     <servlet-mapping>
         <servlet-name>PostServlet</servlet-name>
         <url-pattern>/posts/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>CommentServlet</servlet-name>
+        <url-pattern>/comments</url-pattern>
     </servlet-mapping>
 
 

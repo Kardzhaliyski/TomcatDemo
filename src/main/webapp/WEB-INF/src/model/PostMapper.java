@@ -1,5 +1,6 @@
 package model;
 
+import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Select;
 
@@ -13,4 +14,7 @@ public interface PostMapper {
 
     @Insert("INSERT INTO posts(user_id, title, body) VALUES (#{userId}, #{title}, #{body})")
     public void addPost(Post post);
+
+    @Delete("DELETE FROM posts WHERE id = #{id}")
+    int deleteById(int id);
 }

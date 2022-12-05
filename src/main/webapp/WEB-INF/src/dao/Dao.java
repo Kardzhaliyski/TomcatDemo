@@ -40,7 +40,6 @@ public class Dao {
         properties.load(new FileReader("M:\\Archive\\Git\\TomcatDemo\\MavenTomcatDemo\\src\\main\\webapp\\WEB-INF\\src\\application.properties"));
         InputStream in = Resources.getResourceAsStream("mybatis-config.xml");
         sessionFactory = new SqlSessionFactoryBuilder().build(in, properties);
-//        SqlSession sqlSession = sqlSessionFactory.openSession();
     }
 
     public Post getPostById(int id) {
@@ -83,6 +82,24 @@ public class Dao {
             CommentMapper mapper = sqlSession.getMapper(CommentMapper.class);
             mapper.addComment(comment);
             sqlSession.commit();
+        }
+    }
+
+    public Comment[] getAllComments() {
+        try (SqlSession sqlSession = sessionFactory.openSession()) {
+            CommentMapper mapper = sqlSession.getMapper(CommentMapper.class);
+            Comment[] comments = mapper.getAllComments();
+            sqlSession.commit();
+            return comments;
+        }
+    }
+
+    public int deletePostById(int id) {
+        try (SqlSession sqlSession = sessionFactory.openSession()) {
+            PostMapper mapper = sqlSession.getMapper(PostMapper.class);
+            int comments = mapper.deleteById(id);
+            sqlSession.commit();
+            return comments;
         }
     }
 }

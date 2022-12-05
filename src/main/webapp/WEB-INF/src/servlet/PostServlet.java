@@ -1,7 +1,9 @@
+package servlet;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import dao.Dao;
+import jakarta.servlet.RequestDispatcher;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -11,7 +13,6 @@ import model.Post;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Objects;
 
 public class PostServlet extends HttpServlet {
 
@@ -27,22 +28,15 @@ public class PostServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String pathInfo = req.getPathInfo();
-//        System.out.println(req.getServletPath());
-//        System.out.println(req.getContextPath());
-//        System.out.println(pathInfo);
-//        System.out.println(req.getPathTranslated());
-
         if (pathInfo == null || pathInfo.equals("/")) {
             Post[] posts = dao.getAllPosts();
-            String json = gson.toJson(posts);
-            resp.getWriter().println(json);
+            writeAsJson(resp, posts);
             return;
         }
 
         String[] pathParts = getPathParts(pathInfo);
-        if (pathParts.length == 0 || !isNumber(pathParts[0])) {
-            String json = gson.toJson(null);
-            resp.getWriter().println(json);
+        if (pathParts.length == 0 || !isPositiveNumber(pathParts[0])) {
+            writeAsJson(resp, null);
             return;
         }
 
@@ -51,22 +45,46 @@ public class PostServlet extends HttpServlet {
 
         if (pathParts.length == 1) {
             Post post = dao.getPostById(id);
-            String json = gson.toJson(post);
-            resp.getWriter().println(json);
+            writeAsJson(resp, post);
         } else if (pathParts.length == 2) {
-            if(!pathParts[1].equalsIgnoreCase("comments")) {
-                String json = gson.toJson(null);
-                resp.getWriter().println(json);
+            if (!pathParts[1].equalsIgnoreCase("comments")) {
+                writeAsJson(resp, null);
             }
 
             Comment[] comments = dao.getAllCommentsForPost(id);
-            String json = gson.toJson(comments);
-            resp.getWriter().println(json);
+            writeAsJson(resp, comments);
         }
-
     }
 
-    private boolean isNumber(String str) {
+    @Override
+    protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        String pathInfo = req.getPathInfo();
+        if (pathInfo == null || pathInfo.equals("/")) {
+            writeAsJson(resp, null);
+            return;
+        }
+
+        String[] pathParts = getPathParts(pathInfo);
+        if (pathParts.length == 0 || !isPositiveNumber(pathParts[0])) {
+            writeAsJson(resp, null);
+            return;
+        }
+
+        if (pathParts.length != 1) {
+            writeAsJson(resp, null);
+        }
+
+        int id = Integer.parseInt(pathParts[0]);
+        int i = dao.deletePostById(id);
+        writeAsJson(resp, i);
+    }
+
+    private void writeAsJson(HttpServletResponse resp, Object obj) throws IOException {
+        String json = gson.toJson(obj);
+        resp.getWriter().println(json);
+    }
+
+    private boolean isPositiveNumber(String str) {
         for (int i = 0; i < str.length(); i++) {
             if (!Character.isDigit(str.charAt(i))) {
                 return false;
