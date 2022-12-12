@@ -1,23 +1,24 @@
 package servlet;
 
+import static jakarta.servlet.http.HttpServletResponse.*;
+import static servlet.Utils.*;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import dao.Dao;
 import jakarta.servlet.RequestDispatcher;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServlet;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
-import model.Comment;
+import jakarta.servlet.http.*;
 import model.Post;
-import utils.Security;
 
 import java.io.IOException;
-import java.util.Arrays;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class PostServlet extends HttpServlet {
 
+    Pattern GET_PATH_PATTERN = Pattern.compile("/([0-9]+)(?:(/comments)|/)?");
+    Pattern DELETE_PUT_PATH_PATTERN = Pattern.compile("/([0-9]+)/?");
     Dao dao;
     Gson gson;
 
@@ -29,11 +30,6 @@ public class PostServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        if (!Security.isLoggedIn(req)) {
-            resp.sendError(HttpServletResponse.SC_UNAUTHORIZED);
-            return;
-        }
-
         String pathInfo = req.getPathInfo();
         if (pathInfo == null || pathInfo.equals("/")) {
             Post[] posts = dao.getAllPosts();
@@ -41,74 +37,89 @@ public class PostServlet extends HttpServlet {
             return;
         }
 
-        String[] pathParts = getPathParts(pathInfo);
-        if (pathParts.length == 0 || !isPositiveNumber(pathParts[0])) {
-            writeAsJson(resp, null);
+
+        Matcher matcher = GET_PATH_PATTERN.matcher(pathInfo);
+        if (!matcher.matches()) {
+            writeErrorAsJson(resp, SC_NOT_FOUND, "");
             return;
         }
 
-        String postIdString = pathParts[0];
-        int id = Integer.parseInt(postIdString);
-
-        if (pathParts.length == 1) {
+        int id = Integer.parseInt(matcher.group(1));
+        if (matcher.groupCount() == 1) {
             Post post = dao.getPostById(id);
-            writeAsJson(resp, post);
-        } else if (pathParts.length == 2) {
-            if (!pathParts[1].equalsIgnoreCase("comments")) {
-                writeAsJson(resp, null);
+            if (post == null) {
+                writeErrorAsJson(resp, SC_NOT_FOUND, "");
+                return;
             }
 
-            RequestDispatcher dispatcher = req.getRequestDispatcher("/comments?postId=" + id);
-            dispatcher.forward(req, resp);
+            writeAsJson(resp, post);
+            return;
         }
+
+        RequestDispatcher dispatcher = req.getRequestDispatcher("/comments?postId=" + id);
+        dispatcher.forward(req, resp);
     }
 
     @Override
     protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        if (Security.isLoggedIn(req)) {
-            resp.sendError(HttpServletResponse.SC_UNAUTHORIZED);
-            return;
-        }
-
         String pathInfo = req.getPathInfo();
-        if (pathInfo == null || pathInfo.equals("/")) {
-            writeAsJson(resp, null);
+        Matcher matcher = DELETE_PUT_PATH_PATTERN.matcher(pathInfo);
+        if (!matcher.matches()) {
+            writeErrorAsJson(resp, SC_NOT_FOUND, "");
+        }
+
+        int id = Integer.parseInt(matcher.group(1));
+        dao.deletePostById(id);
+        writeAsJson(resp, null);
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        String pathInfo = req.getPathInfo();
+        if (!(pathInfo == null || pathInfo.equals("/"))) {
+            writeErrorAsJson(resp, SC_NOT_FOUND, "");
+        }
+
+        Post post = null;
+        try {
+            post = gson.fromJson(req.getReader(), Post.class);
+        } catch (NumberFormatException e) {
+            writeErrorAsJson(resp, SC_BAD_REQUEST, "Invalid userId!");
             return;
         }
 
-        String[] pathParts = getPathParts(pathInfo);
-        if (pathParts.length == 0 || !isPositiveNumber(pathParts[0])) {
-            writeAsJson(resp, null);
+        if (post.title == null || post.body == null || post.userId == null) {
+            writeErrorAsJson(resp, SC_BAD_REQUEST, "Invalid data!");
             return;
         }
 
-        if (pathParts.length != 1) {
-            writeAsJson(resp, null);
+        dao.addPost(post);
+        writeAsJson(resp, SC_CREATED, post);
+    }
+
+    @Override
+    protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        String pathInfo = req.getPathInfo();
+        Matcher matcher = DELETE_PUT_PATH_PATTERN.matcher(pathInfo);
+        if (!matcher.matches()) {
+            writeErrorAsJson(resp, SC_NOT_FOUND, "");
         }
 
-        int id = Integer.parseInt(pathParts[0]);
-        int i = dao.deletePostById(id);
-        writeAsJson(resp, i);
-    }
-
-    private void writeAsJson(HttpServletResponse resp, Object obj) throws IOException {
-        String json = gson.toJson(obj);
-        resp.getWriter().println(json);
-    }
-
-    private boolean isPositiveNumber(String str) {
-        for (int i = 0; i < str.length(); i++) {
-            if (!Character.isDigit(str.charAt(i))) {
-                return false;
-            }
+        Post post = null;
+        try {
+            post = gson.fromJson(req.getReader(), Post.class);
+        } catch (NumberFormatException e) {
+            writeErrorAsJson(resp, SC_BAD_REQUEST, "Invalid userId!");
+            return;
         }
 
-        return true;
-    }
+        int id = Integer.parseInt(matcher.group(1));
+        if(!dao.containsPost(id)) {
+            writeErrorAsJson(resp, SC_NOT_FOUND, "");
+        }
 
-    private String[] getPathParts(String pathInfo) {
-        return Arrays.stream(pathInfo.split("/"))
-                .filter(p -> !p.isEmpty())
-                .toArray(String[]::new); // "" posts 1 ""
+        post.id = id;
+        dao.updatePost(post);
+        writeAsJson(resp, post);
     }
 }

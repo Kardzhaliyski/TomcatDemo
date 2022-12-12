@@ -12,8 +12,8 @@ public class SessionFactoryInstance {
     private static SqlSessionFactory instance = null;
     public static SqlSessionFactory getInstance() throws IOException {
         if(instance == null) {
-            Properties properties = Resources.getResourceAsProperties("config/application.properties");
-            InputStream in = Resources.getResourceAsStream("config/mybatis-config.xml");
+            Properties properties = Resources.getResourceAsProperties("application.properties");
+            InputStream in = Resources.getResourceAsStream("mybatis-config.xml");
             instance = new SqlSessionFactoryBuilder().build(in, properties);
         }
 

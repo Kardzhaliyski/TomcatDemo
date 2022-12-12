@@ -25,7 +25,7 @@ public class UsersDao {
         }
     }
 
-    public void insert(User user) {
+    public void addUser(User user) {
         try (SqlSession session = sessionFactory.openSession(true)){
             UserMapper mapper = session.getMapper(UserMapper.class);
             mapper.insert(user);

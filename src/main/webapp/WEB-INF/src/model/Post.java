@@ -2,7 +2,7 @@ package model;
 
 public class Post {
     public int id;
-    public int userId;
+    public Integer userId;
     public String title;
     public String body;
 
@@ -18,9 +18,7 @@ public class Post {
         this.title = title;
         this.body = body;
     }
-
     public void setId(int id) {
-
         this.id = id;
     }
 

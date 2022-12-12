@@ -1,19 +1,33 @@
 package servlet;
 
-import jakarta.servlet.RequestDispatcher;
+import static jakarta.servlet.http.HttpServletResponse.*;
+import static servlet.Utils.*;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import dao.Dao;
+import dao.UsersDao;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import model.User;
-import utils.Security;
+import model.dto.LoginUserDTO;
+import org.apache.commons.codec.digest.DigestUtils;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.util.Enumeration;
 
 public class LoginServlet extends HttpServlet {
+
+    UsersDao dao;
+    Gson gson;
+
+    @Override
+    public void init() throws ServletException {
+        dao = new UsersDao();
+        gson = new GsonBuilder().setPrettyPrinting().create();
+    }
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -23,40 +37,26 @@ public class LoginServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         HttpSession session = req.getSession(false);
-        if(session != null) {
-            RequestDispatcher disp = req.getRequestDispatcher("/");
-            disp.forward(req, resp);
+        if (session != null) {
+            writeAsJson(resp,"Already Logged in!");
             return;
         }
 
-        BufferedReader reader = req.getReader();
-        String username = null;
-        String password = null;
-        String line = reader.readLine();
-        for (String kvp : line.split("&")) {
-            String[] split = kvp.split("=");
-            String key = split[0];
-            String value = split[1];
-            if(key.equalsIgnoreCase("uname")) {
-                username = value;
-            } else if (key.equalsIgnoreCase("psw")) {
-                password = value;
-            }
-        }
+        LoginUserDTO dto = gson.fromJson(req.getReader(), LoginUserDTO.class);
 
-        if(username == null || password == null) {
-            resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
+        if (dto.uname == null || dto.psw == null) {
+            writeErrorAsJson(resp, SC_BAD_REQUEST, "Invalid credentials");
             return;
         }
 
-        User user = new User(username, password);
-        boolean isValid = Security.verifyUser(user);
-        if(!isValid) {
-            resp.sendError(HttpServletResponse.SC_UNAUTHORIZED);
-            return;
+        User user = dao.getUserByUsername(dto.uname);
+        String salt = user.salt;
+        String hashedPassword = DigestUtils.sha1Hex(salt + dto.psw);
+        if(user.password.equals(hashedPassword)) {
+            req.getSession(true);
+            writeAsJson(resp, "User logged in");
+        } else {
+            writeErrorAsJson(resp, SC_UNAUTHORIZED, "Bad credentials");
         }
-
-        req.getSession(true);
-        req.getRequestDispatcher("/").forward(req, resp);
     }
 }

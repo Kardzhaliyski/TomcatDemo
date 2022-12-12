@@ -30,11 +30,12 @@ public class Dao {
         }
     }
 
-    public void addPost(Post post) {
+    public int addPost(Post post) {
         try (SqlSession sqlSession = sessionFactory.openSession()) {
             PostMapper mapper = sqlSession.getMapper(PostMapper.class);
-            mapper.addPost(post);
+            int id = mapper.addPost(post);
             sqlSession.commit();
+            return id;
         }
     }
 
@@ -74,11 +75,24 @@ public class Dao {
     }
 
     public int deletePostById(int id) {
-        try (SqlSession sqlSession = sessionFactory.openSession()) {
+        try (SqlSession sqlSession = sessionFactory.openSession(true)) {
             PostMapper mapper = sqlSession.getMapper(PostMapper.class);
             int comments = mapper.deleteById(id);
-            sqlSession.commit();
             return comments;
+        }
+    }
+
+    public boolean containsPost(int id) {
+        try (SqlSession sqlSession = sessionFactory.openSession(true)) {
+            PostMapper mapper = sqlSession.getMapper(PostMapper.class);
+            return mapper.contains(id);
+        }
+    }
+
+    public void updatePost(Post post) {
+        try (SqlSession sqlSession = sessionFactory.openSession(true)) {
+            PostMapper mapper = sqlSession.getMapper(PostMapper.class);
+            mapper.updatePost(post);
         }
     }
 }

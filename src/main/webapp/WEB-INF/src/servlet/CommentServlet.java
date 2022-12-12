@@ -8,7 +8,6 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import model.Comment;
-import utils.Security;
 
 import java.io.IOException;
 
@@ -24,26 +23,21 @@ public class CommentServlet extends HttpServlet {
     }
 
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        if (Security.isLoggedIn(req)) {
-            resp.sendError(HttpServletResponse.SC_UNAUTHORIZED);
-            return;
-        }
-
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String postId = req.getParameter("postId");
-        if(postId != null) {
-            if (!isPositiveNumber(postId)) {
-                writeAsJson(resp, null);
-                return;
-            }
-
-            int id = Integer.parseInt(postId);
-            Comment[] comments = dao.getAllCommentsForPost(id);
+        if (postId == null) {
+            Comment[] comments = dao.getAllComments();
             writeAsJson(resp, comments);
             return;
         }
 
-        Comment[] comments = dao.getAllComments();
+        if (!isPositiveNumber(postId)) {
+            writeAsJson(resp, new Object[0]);
+            return;
+        }
+
+        int id = Integer.parseInt(postId);
+        Comment[] comments = dao.getAllCommentsForPost(id);
         writeAsJson(resp, comments);
     }
 
