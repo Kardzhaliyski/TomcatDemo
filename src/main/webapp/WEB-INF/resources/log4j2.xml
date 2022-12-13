@@ -12,7 +12,7 @@
                 <Pattern>%d %p %m%n</Pattern>
             </PatternLayout>
             <Policies>
-                <SizeBasedTriggeringPolicy size="1 KB" /> <!-- TODO increase -->
+                <SizeBasedTriggeringPolicy size="10 MB" /> <!-- TODO increase -->
             </Policies>
 <!--            <DefaultRolloverStrategy max="20"/>-->
         </RollingFile>
@@ -23,7 +23,7 @@
                 <Pattern>%d %p %m%n</Pattern>
             </PatternLayout>
             <Policies>
-                <SizeBasedTriggeringPolicy size="1 KB" /> <!-- TODO increase -->
+                <SizeBasedTriggeringPolicy size="10 MB" /> <!-- TODO increase -->
             </Policies>
             <!--            <DefaultRolloverStrategy max="20"/>-->
         </RollingFile>
