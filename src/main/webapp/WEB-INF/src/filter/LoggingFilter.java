@@ -1,6 +1,7 @@
 package filter;
 
 import jakarta.servlet.FilterChain;
+import jakarta.servlet.FilterConfig;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpFilter;
 import jakarta.servlet.http.HttpServletRequest;
@@ -13,39 +14,44 @@ import java.io.IOException;
 
 public class LoggingFilter extends HttpFilter {
 
-    private static Logger log;
+    Logger log;
 
     @Override
-    public void init() throws ServletException {
-        log = LogManager.getLogger(LoggingFilter.class);
+    public void init(FilterConfig config) throws ServletException {
+        String logPath = config.getServletContext().getRealPath("WEB-INF/logs");
+        System.setProperty("fileDir", logPath);
+        log = LogManager.getLogger("FileLogger");
     }
 
     @Override
     protected void doFilter(HttpServletRequest req, HttpServletResponse res, FilterChain chain) throws IOException, ServletException {
-        System.out.println("Start Logging");
         long before = System.currentTimeMillis();
-        chain.doFilter(req, res);
+        try {
+            chain.doFilter(req, res);
+        } catch (Exception e) {
+            log.error(e);
+        }
 
         long after = System.currentTimeMillis();
         long timeTaken = after - before;
 
         String method = req.getMethod();
-        String path = req.getPathInfo();
         String uname = "notLoggedIn";
         HttpSession session = req.getSession(false);
-        if(session != null) {
+        if (session != null) {
             uname = (String) session.getAttribute("uname");
         }
 
-        log.info(String.format("%s %s %s took %sms"),
+        String servletPath = req.getServletPath();
+        String pathInfo = req.getPathInfo();
+        String path = servletPath + (pathInfo == null ? "" : pathInfo);
+        String msg = String.format("%s %s %s took %d ms",
                 method, path, uname, timeTaken);
-
-        int resStatus = res.getStatus();
-        if(resStatus >= 300) {
-            log.warn(String.format("[%s] - %s %s %s took %sms"),
-                    resStatus, method, path, uname, timeTaken);
-        }
-
-        System.out.println("Finished  Logging");
+        log.info(msg);
+//        int resStatus = res.getStatus();
+//        if(resStatus >= 300) {
+//            log.warn(String.format("[%s] - %s %s %s took %sms",
+//                    resStatus, method, path, uname, timeTaken));
+//        }
     }
 }

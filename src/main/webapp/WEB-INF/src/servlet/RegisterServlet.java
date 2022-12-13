@@ -31,6 +31,7 @@ public class RegisterServlet extends HttpServlet {
 
         if (!dto.isValid()) {
             writeErrorAsJson(resp, SC_BAD_REQUEST, "Invalid input");
+
             return;
         }
 

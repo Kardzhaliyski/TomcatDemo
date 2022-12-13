@@ -4,9 +4,9 @@ import org.apache.logging.log4j.Logger;
 
 public class Main {
     public static void main(String[] args) {
-        Logger log = LogManager.getLogger("fileLog");
+        Logger log = LogManager.getLogger();
+//        Logger log = LogManager.getLogger(Main.class);
         System.out.println("start");
-        log.error("Message error main");
-        System.out.println("done");
+
     }
 }

@@ -15,6 +15,7 @@ import jakarta.servlet.http.HttpSession;
 import model.User;
 import model.dto.LoginUserDTO;
 import org.apache.commons.codec.digest.DigestUtils;
+import service.AuthenticationService;
 
 import java.io.IOException;
 
@@ -22,11 +23,13 @@ public class LoginServlet extends HttpServlet {
 
     UsersDao dao;
     Gson gson;
+    AuthenticationService authService;
 
     @Override
     public void init() throws ServletException {
         dao = new UsersDao();
         gson = new GsonBuilder().setPrettyPrinting().create();
+        authService = AuthenticationService.getInstance();
     }
 
     @Override
@@ -36,15 +39,9 @@ public class LoginServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        HttpSession session = req.getSession(false);
-        if (session != null) {
-            writeAsJson(resp,"Already Logged in!");
-            return;
-        }
-
         LoginUserDTO dto = gson.fromJson(req.getReader(), LoginUserDTO.class);
 
-        if (dto.uname == null || dto.psw == null) {
+        if (dto == null || dto.uname == null || dto.psw == null) {
             writeErrorAsJson(resp, SC_BAD_REQUEST, "Invalid credentials");
             return;
         }
@@ -53,7 +50,8 @@ public class LoginServlet extends HttpServlet {
         String salt = user.salt;
         String hashedPassword = DigestUtils.sha1Hex(salt + dto.psw);
         if(user.password.equals(hashedPassword)) {
-            req.getSession(true);
+            String token = authService.createNewToken(dto.uname);
+            resp.addHeader("Authorization", "Bearer " + token);
             writeAsJson(resp, "User logged in");
         } else {
             writeErrorAsJson(resp, SC_UNAUTHORIZED, "Bad credentials");

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN">
+    <Appenders>
+        <!-- Simple console logger -->
+        <Console name="LogToConsole" target="SYSTEM_OUT">
+            <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger - %msg%n"/>
+        </Console>
+
+        <RollingFile name="RollingFile" fileName="${sys:fileDir}/app.log" filePattern="${fileDir}/app-%d{MM-dd-yyyy}.log.gz"
+                     ignoreExceptions="false">
+            <PatternLayout>
+                <Pattern>%d %p %m%n</Pattern>
+            </PatternLayout>
+            <Policies>
+                <SizeBasedTriggeringPolicy size="1 KB" /> <!-- TODO increase -->
+            </Policies>
+<!--            <DefaultRolloverStrategy max="20"/>-->
+        </RollingFile>
+
+        <RollingFile name="ErrorRollingFile" fileName="${sys:fileDir}/app.log" filePattern="${fileDir}/app-%d{MM-dd-yyyy}.log.gz"
+                     ignoreExceptions="false">
+            <PatternLayout>
+                <Pattern>%d %p %m%n</Pattern>
+            </PatternLayout>
+            <Policies>
+                <SizeBasedTriggeringPolicy size="1 KB" /> <!-- TODO increase -->
+            </Policies>
+            <!--            <DefaultRolloverStrategy max="20"/>-->
+        </RollingFile>
+
+    </Appenders>
+    <Loggers>
+
+        <Logger name="FileLogger" level="all" additivity="false">
+            <AppenderRef ref="RollingFile"/>
+            <AppenderRef ref="ErrorRollingFile"/>
+        </Logger>
+
+        <Root level="ERROR">
+            <AppenderRef ref="LogToConsole"/>
+<!--            <AppenderRef ref="RollingFile"/>-->
+        </Root>
+    </Loggers>
+</Configuration>
