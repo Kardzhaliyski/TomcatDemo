@@ -3,10 +3,13 @@ package service;
 import dao.TokenDao;
 import model.AuthToken;
 import org.apache.commons.codec.digest.DigestUtils;
+import servlet.Utils;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
+
+import static jakarta.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
 
 public class AuthenticationService {
 
@@ -59,5 +62,23 @@ public class AuthenticationService {
         }
 
         return authToken;
+    }
+
+    public AuthToken getAuthToken(String authHeader) {
+        if(authHeader == null) {
+            return null;
+        }
+
+        boolean correctSchema = authHeader.startsWith("Bearer ");
+        if (!correctSchema) {
+           return null;
+        }
+
+        String token = authHeader.substring(7);
+        if (!isValid(token)) {
+            return null;
+        }
+
+        return getToken(token);
     }
 }

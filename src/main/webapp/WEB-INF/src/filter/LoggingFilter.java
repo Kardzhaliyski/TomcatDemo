@@ -7,8 +7,10 @@ import jakarta.servlet.http.HttpFilter;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import model.AuthToken;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import service.AuthenticationService;
 
 import java.io.IOException;
 
@@ -37,7 +39,13 @@ public class LoggingFilter extends HttpFilter {
 
         String method = req.getMethod();
         String uname = "notLoggedIn";
-
+        String authHeader = req.getHeader("Authorization");
+        if(authHeader != null) {
+            AuthToken authToken = AuthenticationService.getInstance().getAuthToken(authHeader);
+            if(authToken != null) {
+                uname = authToken.uname;
+            }
+        }
 
         String servletPath = req.getServletPath();
         String pathInfo = req.getPathInfo();
@@ -45,10 +53,5 @@ public class LoggingFilter extends HttpFilter {
         String msg = String.format("%s %s %s took %d ms",
                 method, path, uname, timeTaken);
         log.info(msg);
-//        int resStatus = res.getStatus();
-//        if(resStatus >= 300) {
-//            log.warn(String.format("[%s] - %s %s %s took %sms",
-//                    resStatus, method, path, uname, timeTaken));
-//        }
     }
 }

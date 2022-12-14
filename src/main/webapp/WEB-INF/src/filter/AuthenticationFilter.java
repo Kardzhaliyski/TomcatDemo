@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpFilter;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import model.AuthToken;
 import service.AuthenticationService;
 import servlet.Utils;
 
@@ -25,20 +26,8 @@ public class AuthenticationFilter extends HttpFilter {
     protected void doFilter(HttpServletRequest req, HttpServletResponse res, FilterChain chain) throws IOException, ServletException {
 
         String authHeader = req.getHeader("Authorization");
-        if(authHeader == null) {
-            Utils.writeErrorAsJson(res, SC_UNAUTHORIZED, "User not logged in.");
-            return;
-        }
-
-        boolean correctSchema = authHeader.startsWith("Bearer ");
-        if (!correctSchema) {
-            Utils.writeErrorAsJson(res, SC_UNAUTHORIZED, "User not logged in.");
-            return;
-        }
-
-        String token = authHeader.substring(7);
-        boolean valid = authService.isValid(token);
-        if (!valid) {
+        AuthToken authToken = authService.getAuthToken(authHeader);
+        if(authToken == null) {
             Utils.writeErrorAsJson(res, SC_UNAUTHORIZED, "User not logged in.");
             return;
         }
