@@ -37,10 +37,7 @@ public class LoggingFilter extends HttpFilter {
 
         String method = req.getMethod();
         String uname = "notLoggedIn";
-        HttpSession session = req.getSession(false);
-        if (session != null) {
-            uname = (String) session.getAttribute("uname");
-        }
+
 
         String servletPath = req.getServletPath();
         String pathInfo = req.getPathInfo();

@@ -23,26 +23,24 @@ public class AuthenticationFilter extends HttpFilter {
 
     @Override
     protected void doFilter(HttpServletRequest req, HttpServletResponse res, FilterChain chain) throws IOException, ServletException {
-//        HttpSession session = req.getSession(false);
-//        if (session == null) {
-//            Utils.writeErrorAsJson(res, SC_UNAUTHORIZED, "User not logged in.");
-//            return;
-//        }
 
         String authHeader = req.getHeader("Authorization");
         if(authHeader == null) {
             Utils.writeErrorAsJson(res, SC_UNAUTHORIZED, "User not logged in.");
+            return;
         }
 
         boolean correctSchema = authHeader.startsWith("Bearer ");
         if (!correctSchema) {
             Utils.writeErrorAsJson(res, SC_UNAUTHORIZED, "User not logged in.");
+            return;
         }
 
         String token = authHeader.substring(7);
         boolean valid = authService.isValid(token);
         if (!valid) {
             Utils.writeErrorAsJson(res, SC_UNAUTHORIZED, "User not logged in.");
+            return;
         }
 
         chain.doFilter(req, res);
