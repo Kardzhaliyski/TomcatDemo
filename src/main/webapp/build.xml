@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<project name="BlogApp" default="build" basedir=".">
+    <property name="src.dir" value="./WEB-INF/src" />
+    <property name="build.dir" value="build" />
+    <property name="classes.dir" value="${build.dir}/classes" />
+    <property name="lib.dir" value="./lib" />
+    <property name="war.file" value="./BlogApp.war" />
+
+    <path id="classpath">
+        <fileset dir="${lib.dir}">
+            <include name="*.jar" />
+        </fileset>
+    </path>
+
+    <target name="clean">
+        <delete dir="${build.dir}" />
+        <delete dir="${lib.dir}" />
+        <delete file="${war.file}"/>
+    </target>
+
+    <target name="prepare">
+        <mkdir dir="${classes.dir}" />
+        <mkdir dir="${lib.dir}" />
+    </target>
+
+    <target name="libs" depends="prepare">
+        <get src="https://repo1.maven.org/maven2/org/apache/logging/log4j/log4j-api/2.19.0/log4j-api-2.19.0.jar" dest="./lib/log4j-api-2.19.0.jar" />
+        <get src="https://repo1.maven.org/maven2/org/apache/logging/log4j/log4j-core/2.19.0/log4j-core-2.19.0.jar" dest="./lib/log4j-core-2.19.0.jar" />
+        <get src="https://repo1.maven.org/maven2/commons-codec/commons-codec/1.15/commons-codec-1.15.jar" dest="./lib/commons-codec-1.15.jar" />
+        <get src="https://repo1.maven.org/maven2/com/google/code/gson/gson/2.10/gson-2.10.jar" dest="./lib/gson-2.10.jar" />
+        <get src="https://repo1.maven.org/maven2/org/mariadb/jdbc/mariadb-java-client/3.1.0/mariadb-java-client-3.1.0.jar" dest="./lib/mariadb-java-client-3.1.0.jar" />
+        <get src="https://repo1.maven.org/maven2/org/mybatis/mybatis/3.5.11/mybatis-3.5.11.jar" dest="./lib/mybatis-3.5.11.jar" />
+        <get src="https://repo1.maven.org/maven2/jakarta/servlet/jakarta.servlet-api/6.0.0/jakarta.servlet-api-6.0.0.jar" dest="./lib/jakarta.servlet-api-6.0.0.jar" />
+    </target>
+
+    <target name="compile" depends="libs">
+        <javac srcdir="${src.dir}" destdir="${classes.dir}" classpathref="classpath" />
+    </target>
+
+    <target name="war" depends="compile">
+        <war destfile="${war.file}" webxml="./WEB-INF/web.xml">
+            <classes dir="${classes.dir}" />
+            <lib dir="${lib.dir}" />
+        </war>
+    </target>
+
+    <target name="build" depends="war">
+        <echo message="Build complete" />
+    </target>
+</project>

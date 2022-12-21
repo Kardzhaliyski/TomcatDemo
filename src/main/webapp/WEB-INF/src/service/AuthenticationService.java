@@ -9,7 +9,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 
-import static jakarta.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
+import static javax.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
 
 public class AuthenticationService {
 
@@ -49,6 +49,7 @@ public class AuthenticationService {
     public String createNewToken(String username) {
         int salt = random.nextInt();
         String token = DigestUtils.sha1Hex(username + "$" + salt);
+
         AuthToken authToken = new AuthToken(username, token);
         dao.addToken(authToken);
         tokenMap.put(token, authToken);

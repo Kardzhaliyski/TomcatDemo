@@ -1,14 +1,14 @@
 package servlet;
 
-import static jakarta.servlet.http.HttpServletResponse.*;
+import static javax.servlet.http.HttpServletResponse.*;
 import static servlet.Utils.*;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import dao.Dao;
-import jakarta.servlet.RequestDispatcher;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.*;
+import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletException;
+import javax.servlet.http.*;
 import model.Post;
 
 import java.io.IOException;
@@ -30,13 +30,13 @@ public class PostServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+//        String t = req.getServletPath();
         String pathInfo = req.getPathInfo();
         if (pathInfo == null || pathInfo.equals("/")) {
             Post[] posts = dao.getAllPosts();
             writeAsJson(resp, posts);
             return;
         }
-
 
         Matcher matcher = GET_PATH_PATTERN.matcher(pathInfo);
         if (!matcher.matches()) {

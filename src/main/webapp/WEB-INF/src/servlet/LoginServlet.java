@@ -1,22 +1,22 @@
 package servlet;
 
-import static jakarta.servlet.http.HttpServletResponse.*;
+import static javax.servlet.http.HttpServletResponse.*;
 import static servlet.Utils.*;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import dao.Dao;
 import dao.UsersDao;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServlet;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import model.User;
 import model.dto.LoginUserDTO;
 import org.apache.commons.codec.digest.DigestUtils;
 import service.AuthenticationService;
 
+import javax.servlet.http.HttpServlet;
 import java.io.IOException;
 
 public class LoginServlet extends HttpServlet {
@@ -51,6 +51,7 @@ public class LoginServlet extends HttpServlet {
         String hashedPassword = DigestUtils.sha1Hex(salt + dto.psw);
         if(user.password.equals(hashedPassword)) {
             String token = authService.createNewToken(dto.uname);
+
             resp.addHeader("Authorization", "Bearer " + token);
             writeAsJson(resp, "User logged in");
         } else {
